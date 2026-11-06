@@ -1,0 +1,242 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Giro de Estoque</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f2f4f7;--surface:#fcfcfb;--ink:#12161c;--ink2:#4a5361;--muted:#5f6877;--line:#dfe3e9;--grid:#e8ebf0;--pill:#eef1f5;--s1:#2a78d6;--err:#b32d2d;--tip-bg:#12161c;--tip-ink:#f2f4f7;--sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1217;--surface:#171b22;--ink:#eceef2;--ink2:#b4bbc7;--muted:#8f98a7;--line:#272d37;--grid:#202630;--pill:#222832;--s1:#3987e5;--err:#f08a8a;--tip-bg:#eceef2;--tip-ink:#12161c;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);font-variant-numeric:tabular-nums;padding:24px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+button,select,input{font:inherit;color:inherit}[hidden]{display:none!important}:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;justify-content:space-between}
+h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}.meta{margin:4px 0 0;color:var(--muted);font-size:13px}
+.tools,.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn,.sel,.inp{background:var(--surface);border:1px solid var(--line);border-radius:6px;height:34px;padding:0 12px}
+.btn{cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap}.btn:hover,.sel:hover{border-color:var(--muted)}
+.btn.pri{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:500}.btn.danger{color:var(--err)}.btn.sm{height:28px;padding:0 9px;font-size:12.5px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden;height:34px}
+.seg button{border:0;background:transparent;padding:0 12px;cursor:pointer;color:var(--ink2)}.seg button[aria-checked=true]{background:var(--ink);color:var(--surface);font-weight:500}
+input[type=file]{display:none}#toast{min-height:18px;font-size:13px;color:var(--ink2)}
+.banner{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--ink2);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media(min-width:620px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:1100px){.kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.k-label{font-size:12px;color:var(--muted)}.k-val{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere}.k-val.md{font-size:22px}.k-sub{font-size:12.5px;color:var(--ink2);min-height:20px}
+.pill{display:inline-flex;align-items:center;gap:5px;background:var(--pill);border:1px solid var(--line);border-radius:999px;padding:0 8px 0 6px;height:20px;font-size:12px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px 14px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:15px;font-weight:600}.sub,.hint{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.ch{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}.plot{min-width:0}.plot svg{display:block;width:100%;overflow:visible}
+.empty{padding:36px 8px;text-align:center;color:var(--muted)}.empty .btn{margin:10px 4px 0}
+svg text{font-family:var(--sans);font-size:11.5px}.t{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.gl{stroke:var(--grid)}.bar{fill:var(--s1)}.bar2{fill:var(--muted)}.hit{fill:transparent}.clk{cursor:pointer}.dim{opacity:.35}.ref{stroke:var(--muted);stroke-dasharray:4 4}
+.tscroll{overflow:auto;max-height:480px;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:1120px;font-size:13px}
+th{position:sticky;top:0;background:var(--pill);text-align:left;font-weight:500;color:var(--ink2);padding:8px 12px;font-size:12px;border-bottom:1px solid var(--line);white-space:nowrap}th[data-sort]{cursor:pointer}
+td{padding:8px 12px;border-bottom:1px solid var(--grid);white-space:nowrap}tr:last-child td{border-bottom:0}.r{text-align:right}td.name{white-space:normal;min-width:170px}td.code{color:var(--ink2)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px}label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink2)}.inp{width:100%}.inp.mg{width:120px;text-align:right}.err{color:var(--err);font-size:13px}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--tip-bg);color:var(--tip-ink);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.4;max-width:260px;opacity:0;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+#tip b{display:block;margin-bottom:3px}#tip .tr{display:flex;justify-content:space-between;gap:16px}#tip .tr span:first-child{opacity:.75}
+</style></head><body>
+<div class="wrap">
+<header><div><h1>Giro de Estoque</h1><p class="meta" id="asof"></p></div>
+<div class="tools"><button class="btn pri" id="bLan" type="button">Lançar mês</button><button class="btn" id="bNew" type="button">Novo item</button><button class="btn" id="bSrc" type="button">Importar do Painel de Estoque</button><label class="btn" for="fCsv">Importar CSV</label><input type="file" id="fCsv" accept=".csv,text/csv"><button class="btn" id="bExp" type="button" hidden>Exportar CSV</button></div></header>
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="banner">Giro = consumo do período ÷ estoque médio do período. Ele diz quantas vezes o estoque foi consumido e renovado. Os dados ficam salvos neste navegador; use Exportar CSV como cópia de segurança.</div>
+
+<section class="card" id="panel" hidden aria-label="Cadastro de item">
+<div class="ch"><div><h2 id="pTitle">Novo item</h2><p class="sub">Para cada mês, informe a entrada (compras), o consumo e o saldo no fim do mês. Os meses podem ficar em branco e ser lançados depois em "Lançar mês".</p></div></div>
+<form id="form" novalidate><div class="form">
+<label class="f">Código<input class="inp" id="fCode" maxlength="30"></label><label class="f">Nome do item<input class="inp" id="fName" maxlength="80"></label>
+<label class="f">Categoria<input class="inp" id="fCat" maxlength="40" list="cats"></label><label class="f">Unidade<input class="inp" id="fUnit" maxlength="12" value="un"></label>
+<label class="f">Custo unitário (R$)<input class="inp" id="fCost" type="number" min="0" step="0.01"></label></div><datalist id="cats"></datalist>
+<div class="tscroll" style="max-height:320px;margin-top:12px"><table style="min-width:560px"><thead><tr><th>Mês</th><th class="r">Entrada no mês</th><th class="r">Consumo no mês</th><th class="r">Saldo no fim do mês</th></tr></thead><tbody id="grid"></tbody></table></div>
+<div class="row" style="margin-top:12px"><button class="btn pri" type="submit" id="pSave">Salvar item</button><button class="btn" type="button" id="pCancel">Cancelar</button><span class="err" id="pErr" role="alert"></span></div></form></section>
+
+<section class="card" id="lPanel" hidden aria-label="Lançar mês">
+<div class="ch"><div><h2>Lançar mês</h2><p class="sub">Registre a entrada, o consumo e o saldo de um item em um mês. O que já estava lançado nesse mês é substituído. O mês atual entra nos indicadores quando for fechado.</p></div></div>
+<form id="lForm" novalidate><div class="form"><label class="f">Item<select class="sel" id="lItem"></select></label><label class="f">Mês<select class="sel" id="lMes"></select></label>
+<label class="f">Entrada no mês<input class="inp" id="lE" type="number" min="0" step="any" inputmode="decimal"></label><label class="f">Consumo no mês<input class="inp" id="lC" type="number" min="0" step="any" inputmode="decimal"></label>
+<label class="f">Saldo no fim do mês<input class="inp" id="lS" type="number" min="0" step="any" inputmode="decimal"></label></div>
+<p class="hint" id="lHint"></p><div class="row"><button class="btn pri" type="submit">Salvar mês</button><button class="btn" type="button" id="lUse">Usar saldo sugerido</button><button class="btn" type="button" id="lCancel">Cancelar</button><span class="err" id="lErr" role="alert"></span></div></form></section>
+<div class="card empty" id="empty" hidden><h2>Nenhum item cadastrado ainda</h2><p>Importe os dados do Painel de Estoque (mesmo navegador), importe um CSV ou cadastre o primeiro item.</p><div><button class="btn pri" data-act="new" type="button">Novo item</button><button class="btn" data-act="src" type="button">Importar do Painel de Estoque</button></div></div>
+
+<div id="main" hidden style="display:flex;flex-direction:column;gap:16px">
+<div class="ch"><div class="row"><div class="seg" role="radiogroup" aria-label="Período" id="per"><button role="radio" data-n="3">3 meses</button><button role="radio" data-n="6">6 meses</button><button role="radio" data-n="12">12 meses</button></div><select class="sel" id="catSel" aria-label="Categoria"></select></div>
+<div class="row"><span class="hint">Giro anual: alto a partir de</span><input class="inp" id="tHi" type="number" min="0" step="0.5" style="width:70px" aria-label="Giro anual mínimo para classe alta"><span class="hint">× · baixo abaixo de</span><input class="inp" id="tLo" type="number" min="0" step="0.5" style="width:70px" aria-label="Giro anual abaixo do qual é baixo"><span class="hint">×</span></div></div>
+<section class="kpis" id="kpis"></section>
+<div class="grid">
+<section class="card"><div class="ch"><div><h2>Giro mês a mês</h2><p class="sub">Consumo do mês ÷ estoque médio do mês (em R$). A linha tracejada é a média do período.</p></div></div><div class="plot" id="cMes"></div></section>
+<section class="card"><div class="ch"><div><h2>Giro por categoria</h2><p class="sub">Vezes que o estoque girou no período. Clique em uma barra para filtrar.</p></div></div><div class="plot" id="cCat"></div></section>
+<section class="card"><div class="ch"><div><h2>Itens que mais giram</h2><p class="sub">Maior giro no período. Clique para editar.</p></div></div><div class="plot" id="cTop"></div></section>
+<section class="card"><div class="ch"><div><h2>Itens parados ou lentos</h2><p class="sub">Menor giro, com saldo em estoque. Dinheiro parado nas prateleiras.</p></div></div><div class="plot" id="cLow"></div></section></div>
+<section class="card"><div class="ch"><div><h2>Giro por item</h2><p class="sub" id="tSub"></p></div><input class="inp" id="q" type="search" placeholder="Buscar por nome, código ou categoria" aria-label="Buscar" style="min-width:min(100%,260px)"></div><div class="tscroll" id="tbl"></div></section>
+</div></div>
+<div id="tip" role="tooltip"></div>
+<script>
+(function(){"use strict";
+const $=s=>document.querySelector(s),KEY="painel_giro_dados_v1",CFG=KEY+"_cfg",SRC="painel_estoque_dados_v1";
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("pt-BR",{maximumFractionDigits:3}),brl=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}),cmp=new Intl.NumberFormat("pt-BR",{notation:"compact",maximumFractionDigits:1});
+const gf=v=>v==null?"—":v.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"×",r3=v=>Math.round(v*1000)/1000,pad=n=>String(n).padStart(2,"0");
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],ml=k=>MES[+k.slice(5)-1]+"/"+k.slice(2,4);
+const mkeys=n=>{const d=new Date(),o=[];for(let i=n;i>=1;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);o.push(x.getFullYear()+"-"+pad(x.getMonth()+1))}return o};
+const prevK=k=>{const[y,m]=k.split("-").map(Number);return m===1?(y-1)+"-12":y+"-"+pad(m-1)};
+const newId=()=>"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+let items=[],cfg={hi:6,lo:2};const S={n:6,cat:"all",q:"",sort:{k:"giro",d:-1}};let editId=null;
+try{items=JSON.parse(localStorage.getItem(KEY)||"[]");Object.assign(cfg,JSON.parse(localStorage.getItem(CFG)||"{}"))}catch(_){}
+const toast=t=>{$("#toast").textContent=t};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items));localStorage.setItem(CFG,JSON.stringify(cfg))}catch(_){toast("Não foi possível salvar neste navegador. Verifique se o armazenamento está liberado.")}render()}
+function twoStep(b,label,fn){if(b.dataset.armed){clearTimeout(+b.dataset.armed);delete b.dataset.armed;b.textContent=b.dataset.orig;fn();return}b.dataset.orig=b.textContent;b.textContent=label;b.dataset.armed=setTimeout(()=>{b.textContent=b.dataset.orig;delete b.dataset.armed},4000)}
+
+/* ---- cálculo do giro ---- */
+function met(i,ks){let c=0,s=0,n=0,e=0;ks.forEach(k=>{const m=i.m[k];if(m){c+=m.c||0;e+=m.e||0;s+=m.s||0;n++}});const avg=n?s/n:0,giro=avg>0?c/avg:null;
+ const ann=giro==null?null:giro*12/ks.length,cls=c<=0?"zero":(giro==null||ann>=cfg.hi)?"hi":ann<cfg.lo?"lo":"mid";
+ return{c,e,avg,giro,cob:giro>0?ks.length*30/giro:null,cls,n,last:n?(i.m[ks[ks.length-1]]||{}).s||0:0}}
+const CL={zero:["Sem giro","M5 0.5 9.5 5 5 9.5 0.5 5z","#d03b3b"],lo:["Giro baixo","M5 0.8 9.6 9H0.4z","#ec835a"],mid:["Giro médio","M5 .8a4.2 4.2 0 1 0 .01 0z","#fab219"],hi:["Giro alto","M1 5.4 4 8.2 9 1.8","#0ca30c"]};
+const pill=c=>`<span class="pill"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="${CL[c][1]}" ${c==="hi"?`fill="none" stroke="${CL[c][2]}" stroke-width="1.8"`:`fill="${CL[c][2]}"`}/></svg>${CL[c][0]}</span>`;
+const fil=()=>S.cat==="all"?items:items.filter(i=>i.cat===S.cat);
+function agg(list,ks){let c=0,s=0,e=0;list.forEach(i=>{if(!(i.cost>0))return;const m=met(i,ks);c+=m.c*i.cost;e+=m.e*i.cost;s+=m.avg*i.cost});return{c,e,s,giro:s>0?c/s:null}}
+
+/* ---- tooltip e gráficos ---- */
+const tip=$("#tip"),tr=(a,b)=>`<div class="tr"><span>${a}</span><span>${b}</span></div>`;
+function showTip(h,x,y){tip.innerHTML=h;tip.style.opacity=1;const w=tip.offsetWidth,ht=tip.offsetHeight;let l=x+14,t=y+14;if(l+w>innerWidth-8)l=x-w-14;if(t+ht>innerHeight-8)t=y-ht-14;tip.style.left=Math.max(8,l)+"px";tip.style.top=Math.max(8,t)+"px"}
+document.addEventListener("pointermove",e=>{const g=e.target.closest&&e.target.closest("[data-tip]");if(g)showTip(g.dataset.tip,e.clientX,e.clientY);else tip.style.opacity=0});
+const cut=(s,n)=>s.length>n?s.slice(0,Math.max(1,n-1))+"…":s;
+const ticks=(max,n)=>{if(!(max>0))return[0,1];const raw=max/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p,st=(f<=1?1:f<=2?2:f<=5?5:10)*p,o=[0];let v=0;while(v<max-1e-9){v+=st;o.push(+v.toFixed(10))}return o};
+const emptyMsg=(el,t)=>{el.innerHTML=`<div class="empty">${t}</div>`};
+function hbars(el,rows,fmt){
+ if(!rows.length)return emptyMsg(el,"Sem dados para este filtro.");
+ const W=el.clientWidth||500,L=Math.min(170,Math.round(W*.36)),R=70,band=30,bh=16,H=rows.length*band+6,mx=Math.max(...rows.map(r=>r.y),.001),iw=Math.max(W-L-R,40);
+ let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img">`;
+ rows.forEach((r,k)=>{const y=k*band+(band-bh)/2+3,w=Math.max(r.y/mx*iw,r.y>0?2:0);
+  s+=`<g class="clk${r.dim?" dim":""}" ${r.attr||""} data-tip="${esc(r.tip)}"><rect class="hit" x="0" y="${k*band}" width="${W}" height="${band}"/><text class="t" x="${L-8}" y="${y+12}" text-anchor="end">${esc(cut(r.label,Math.floor((L-8)/6.4)))}</text><rect class="bar" x="${L}" y="${y}" width="${w}" height="${bh}" rx="3"/><text class="t2" x="${L+w+6}" y="${y+12}">${fmt(r.y)}</text></g>`});
+ el.innerHTML=s+"</svg>"}
+function vbars(el,pts,ref){
+ const W=el.clientWidth||500,H=250,mx=Math.max(...pts.map(p=>p.y),ref||0,.001),tk=ticks(mx,4),top=tk[tk.length-1],mg={l:46,r:12,t:16,b:28},iw=W-mg.l-mg.r,ih=H-mg.t-mg.b,bw=iw/pts.length,w=Math.min(bw*.62,34),Y=v=>mg.t+ih*(1-v/top);
+ let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img">`;
+ tk.forEach(v=>{s+=`<line class="gl" x1="${mg.l}" x2="${W-mg.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="tm" x="${mg.l-8}" y="${Y(v)+4}" text-anchor="end">${v.toLocaleString("pt-BR")}×</text>`});
+ pts.forEach((p,k)=>{const x=mg.l+k*bw+(bw-w)/2,h=p.y/top*ih;
+  s+=`<g data-tip="${esc(p.tip)}"><rect class="hit" x="${mg.l+k*bw}" y="${mg.t}" width="${bw}" height="${ih}"/><rect class="bar" x="${x}" y="${mg.t+ih-h}" width="${w}" height="${h}" rx="3"/>${W>=480&&p.y>0?`<text class="t2" x="${x+w/2}" y="${mg.t+ih-h-5}" text-anchor="middle">${p.y.toLocaleString("pt-BR",{maximumFractionDigits:1})}</text>`:""}</g><text class="tm" x="${mg.l+k*bw+bw/2}" y="${H-8}" text-anchor="middle">${p.x}</text>`});
+ if(ref)s+=`<line class="ref" x1="${mg.l}" x2="${W-mg.r}" y1="${Y(ref)}" y2="${Y(ref)}"/><text class="tm" x="${W-mg.r}" y="${Y(ref)-5}" text-anchor="end">média ${gf(ref)}</text>`;
+ el.innerHTML=s+"</svg>"}
+
+/* ---- renderização ---- */
+function render(){
+ $("#asof").textContent="Posição em "+new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})+" · meses fechados";
+ const has=items.length;$("#empty").hidden=!!has;$("#main").hidden=!has;$("#bExp").hidden=!has;
+ $("#cats").innerHTML=[...new Set(items.map(i=>i.cat))].sort().map(c=>`<option value="${esc(c)}">`).join("");
+ if(!has)return;
+ const cats=[...new Set(items.map(i=>i.cat))].sort((a,b)=>a.localeCompare(b,"pt-BR"));if(S.cat!=="all"&&!cats.includes(S.cat))S.cat="all";
+ $("#catSel").innerHTML=`<option value="all">Todas as categorias</option>`+cats.map(c=>`<option value="${esc(c)}"${c===S.cat?" selected":""}>${esc(c)}</option>`).join("");
+ document.querySelectorAll("#per button").forEach(b=>b.setAttribute("aria-checked",+b.dataset.n===S.n));
+ if(document.activeElement!==$("#tHi"))$("#tHi").value=cfg.hi;if(document.activeElement!==$("#tLo"))$("#tLo").value=cfg.lo;
+ const ks=mkeys(S.n),list=fil(),ag=agg(list,ks),rows=list.map(i=>({i,m:met(i,ks)}));
+ const nz=rows.filter(r=>r.m.cls==="zero").length,nl=rows.filter(r=>r.m.cls==="lo").length,nocost=list.filter(i=>!(i.cost>0)).length;
+ const kp=(l,v,s,md)=>`<div class="kpi"><span class="k-label">${l}</span><span class="k-val${md?" md":""}">${v}</span><span class="k-sub">${s}</span></div>`;
+ $("#kpis").innerHTML=kp("Giro no período",gf(ag.giro),`${S.n} meses · ${gf(ag.giro==null?null:ag.giro*12/S.n)} ao ano`)+
+  kp("Cobertura média",ag.giro>0?nf.format(Math.round(S.n*30/ag.giro)):"—","dias de consumo em estoque")+
+  kp("Estoque médio",brl.format(ag.s),"média dos saldos de fim de mês",1)+kp("Consumo no período",brl.format(ag.c),"entradas no período: "+brl.format(ag.e),1)+
+  kp("Itens sem giro",nz,nz?"sem consumo no período":"todos com consumo")+kp("Itens com giro baixo",nl,`abaixo de ${gf(cfg.lo)} ao ano`);
+ const mk=mkeys(S.n);
+ const pts=mk.map(k=>{let c=0,s=0,e=0;list.forEach(i=>{if(!(i.cost>0))return;const m=i.m[k];if(!m)return;const p=i.m[prevK(k)];c+=(m.c||0)*i.cost;e+=(m.e||0)*i.cost;s+=((p?p.s:m.s)+m.s)/2*i.cost});const g=s>0?c/s:0;return{x:ml(k),y:g,tip:`<b>${ml(k)}</b>${tr("Giro do mês",gf(g))}${tr("Entradas",brl.format(e))}${tr("Consumo",brl.format(c))}${tr("Estoque médio",brl.format(s))}`}});
+ vbars($("#cMes"),pts,ag.giro?ag.giro/S.n:0);
+ const by={};items.forEach(i=>{if(!(i.cost>0))return;(by[i.cat]=by[i.cat]||[]).push(i)});
+ hbars($("#cCat"),Object.entries(by).map(([c,l])=>({c,a:agg(l,ks),n:l.length})).filter(o=>o.a.giro!=null).sort((a,b)=>b.a.giro-a.a.giro).map(o=>({label:o.c,y:o.a.giro,dim:S.cat!=="all"&&S.cat!==o.c,attr:`data-cat="${esc(o.c)}"`,tip:`<b>${esc(o.c)}</b>${tr("Giro",gf(o.a.giro))}${tr("Cobertura",nf.format(Math.round(ks.length*30/o.a.giro))+" dias")}${tr("Itens",o.n)}`})),gf);
+ const row=r=>({label:r.i.name,y:r.m.giro||0,attr:`data-edit="${esc(r.i.id)}"`,tip:`<b>${esc(r.i.name)}</b>${tr("Giro",gf(r.m.giro))}${tr("Consumo",nf.format(r.m.c)+" "+esc(r.i.unit))}${tr("Estoque médio",nf.format(Math.round(r.m.avg*10)/10)+" "+esc(r.i.unit))}${tr("Cobertura",r.m.cob==null?"—":nf.format(Math.round(r.m.cob))+" dias")}`});
+ hbars($("#cTop"),rows.filter(r=>r.m.giro>0).sort((a,b)=>b.m.giro-a.m.giro).slice(0,8).map(row),gf);
+ hbars($("#cLow"),rows.filter(r=>r.m.last>0&&r.i.cost>0&&r.m.cls!=="hi").sort((a,b)=>(a.m.giro||0)-(b.m.giro||0)||b.m.last*b.i.cost-a.m.last*a.i.cost).slice(0,8).map(r=>({...row(r),tip:row(r).tip+tr("Valor parado",brl.format(r.m.last*r.i.cost))})),gf);
+ const q=S.q.trim().toLowerCase(),k=S.sort.k,d=S.sort.d;
+ const T=rows.filter(r=>!q||(r.i.name+" "+r.i.code+" "+r.i.cat).toLowerCase().includes(q)).map(r=>({...r,v:{code:r.i.code,name:r.i.name,cat:r.i.cat,e:r.m.e,c:r.m.c,avg:r.m.avg,giro:r.m.giro==null?-1:r.m.giro,cob:r.m.cob==null?1e9:r.m.cob,cls:r.m.cls}}));
+ T.sort((a,b)=>{const x=a.v[k],y=b.v[k];return(typeof x==="string"?x.localeCompare(y,"pt-BR"):x-y)*d});
+ $("#tSub").textContent=`${T.length} de ${list.length} itens · últimos ${S.n} meses fechados${nocost?` · ${nocost} sem custo ficam fora dos totais em R$`:""}`;
+ const th=(key,l,r)=>`<th data-sort="${key}"${r?' class="r"':""}>${l}${k===key?(d>0?" ↑":" ↓"):""}</th>`;
+ $("#tbl").innerHTML=T.length?`<table><thead><tr>${th("code","Código")}${th("name","Item")}${th("cat","Categoria")}${th("e","Entradas",1)}${th("c","Consumo",1)}${th("avg","Estoque médio",1)}${th("giro","Giro",1)}${th("cob","Cobertura",1)}${th("cls","Situação")}<th class="r">Ações</th></tr></thead><tbody>`+
+  T.map(r=>`<tr><td class="code">${esc(r.i.code)}</td><td class="name">${esc(r.i.name)}</td><td>${esc(r.i.cat)}</td><td class="r">${nf.format(r.m.e)} ${esc(r.i.unit)}</td><td class="r">${nf.format(r.m.c)} ${esc(r.i.unit)}</td><td class="r">${nf.format(Math.round(r.m.avg*10)/10)} ${esc(r.i.unit)}</td><td class="r">${gf(r.m.giro)}</td><td class="r">${r.m.cob==null?"—":nf.format(Math.round(r.m.cob))+" dias"}</td><td>${pill(r.m.cls)}</td><td class="r"><button class="btn sm" data-act="lan" data-id="${esc(r.i.id)}" type="button">Lançar mês</button> <button class="btn sm" data-act="edit" data-id="${esc(r.i.id)}" type="button">Editar</button> <button class="btn sm danger" data-act="del" data-id="${esc(r.i.id)}" type="button">Excluir</button></td></tr>`).join("")+"</tbody></table>":`<div class="empty">Nenhum item encontrado.</div>`}
+
+/* ---- cadastro / edição ---- */
+function openL(id){
+ if(!items.length){toast("Cadastre um item primeiro.");openForm();return}
+ $("#panel").hidden=true;const d=new Date(),cur=d.getFullYear()+"-"+pad(d.getMonth()+1);
+ $("#lItem").innerHTML=[...items].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR")).map(i=>`<option value="${esc(i.id)}">${esc(i.code)} · ${esc(i.name)}</option>`).join("");if(id)$("#lItem").value=id;
+ $("#lMes").innerHTML=`<option value="${cur}">${ml(cur)} (mês atual)</option>`+mkeys(12).reverse().map(k=>`<option value="${k}">${ml(k)}</option>`).join("");
+ $("#lErr").textContent="";lFill();$("#lPanel").hidden=false;$("#lPanel").scrollIntoView({behavior:"smooth",block:"nearest"});$("#lE").focus({preventScroll:true})}
+const lCur=()=>{const i=items.find(x=>x.id===$("#lItem").value);return{i,k:$("#lMes").value}};
+function lFill(){const{i,k}=lCur(),m=i&&i.m[k]||{};$("#lE").value=m.e==null?"":m.e;$("#lC").value=m.c==null?"":m.c;$("#lS").value=m.s==null?"":m.s;lHint()}
+function lSug(){const{i,k}=lCur(),p=i&&i.m[prevK(k)];return p?r3(p.s+(Number($("#lE").value)||0)-(Number($("#lC").value)||0)):null}
+function lHint(){const g=lSug();$("#lHint").textContent=g==null?"Não há saldo do mês anterior para sugerir. Informe o saldo do fim do mês.":g<0?"Atenção: o consumo é maior que o saldo anterior mais a entrada.":"Saldo sugerido: "+nf.format(g)+" (saldo do mês anterior + entrada − consumo).";$("#lUse").hidden=g==null||g<0}
+$("#lItem").onchange=lFill;$("#lMes").onchange=lFill;$("#lE").oninput=lHint;$("#lC").oninput=lHint;$("#lUse").onclick=()=>{$("#lS").value=lSug()};$("#lCancel").onclick=()=>{$("#lPanel").hidden=true};$("#bLan").onclick=()=>openL();
+$("#lForm").addEventListener("submit",e=>{e.preventDefault();const{i,k}=lCur(),err=$("#lErr");err.textContent="";
+ const v=id=>$(id).value.trim()===""?null:Number($(id).value);let en=v("#lE"),c=v("#lC"),sd=v("#lS");
+ if(!i){err.textContent="Escolha um item.";return}
+ if(en==null&&c==null&&sd==null){err.textContent="Informe a entrada, o consumo ou o saldo.";return}
+ if(sd==null)sd=lSug();if(sd==null){err.textContent="Informe o saldo do fim do mês.";return}
+ if([en,c,sd].some(x=>x!=null&&(isNaN(x)||x<0))){err.textContent="Use apenas números a partir de zero.";return}
+ i.m[k]={s:r3(sd),c:r3(c||0),e:r3(en||0)};$("#lPanel").hidden=true;toast("Mês "+ml(k)+" lançado para "+i.name+".");save()});
+function openForm(id){$("#lPanel").hidden=true;
+ editId=id||null;const i=id&&items.find(x=>x.id===id),ks=mkeys(12);
+ $("#pTitle").textContent=i?"Editar item":"Novo item";$("#pSave").textContent=i?"Salvar alterações":"Salvar item";
+ $("#fCode").value=i?i.code:"";$("#fName").value=i?i.name:"";$("#fCat").value=i?i.cat:(S.cat!=="all"?S.cat:"");$("#fUnit").value=i?i.unit:"un";$("#fCost").value=i?i.cost:"";$("#pErr").textContent="";
+ $("#grid").innerHTML=ks.map(k=>{const m=i&&i.m[k]||{};return`<tr><td>${ml(k)}</td><td class="r"><input class="inp mg" type="number" min="0" step="any" data-k="${k}" data-f="e" value="${m.e==null?"":m.e}" aria-label="Entrada em ${ml(k)}"></td><td class="r"><input class="inp mg" type="number" min="0" step="any" data-k="${k}" data-f="c" value="${m.c==null?"":m.c}" aria-label="Consumo em ${ml(k)}"></td><td class="r"><input class="inp mg" type="number" min="0" step="any" data-k="${k}" data-f="s" value="${m.s==null?"":m.s}" aria-label="Saldo no fim de ${ml(k)}"></td></tr>`}).join("");
+ $("#panel").hidden=false;$("#panel").scrollIntoView({behavior:"smooth",block:"nearest"});$("#fName").focus({preventScroll:true})}
+const closeForm=()=>{$("#panel").hidden=true;editId=null};
+$("#form").addEventListener("submit",e=>{e.preventDefault();const err=$("#pErr");err.textContent="";const fail=t=>{err.textContent=t;toast(t);err.scrollIntoView({block:"center",behavior:"smooth"})};
+ const code=$("#fCode").value.trim(),name=$("#fName").value.trim(),cat=$("#fCat").value.trim(),cost=Number($("#fCost").value);
+ if(!code||!name||!cat){return fail("Preencha código, nome e categoria.")}
+ if($("#fCost").value===""||isNaN(cost)||cost<0){return fail("Informe o custo unitário.")}
+ if(items.some(i=>i.code.toLowerCase()===code.toLowerCase()&&i.id!==editId)){return fail("Já existe um item com esse código.")}
+ const m={};let bad=false;document.querySelectorAll("#grid input").forEach(inp=>{if(inp.value==="")return;const n=Number(inp.value);if(isNaN(n)||n<0){bad=true;return}(m[inp.dataset.k]=m[inp.dataset.k]||{})[inp.dataset.f]=r3(n)});
+ if(bad){return fail("Use apenas números a partir de zero.")}
+ 
+ Object.values(m).forEach(x=>{if(x.s==null)x.s=0;if(x.c==null)x.c=0;if(x.e==null)x.e=0});
+ const old=editId&&items.find(x=>x.id===editId),keep=old?Object.fromEntries(Object.entries(old.m).filter(([k])=>!mkeys(12).includes(k))):{};
+ const rec={id:editId||newId(),code,name,cat,unit:$("#fUnit").value.trim()||"un",cost:r3(cost),m:{...keep,...m}};
+ if(old)items[items.indexOf(old)]=rec;else items.push(rec);
+ closeForm();toast(old?"Item atualizado.":"Item cadastrado. Use \"Lançar mês\" para registrar entradas e consumo.");save()});
+
+/* ---- importação ---- */
+function fromPainel(){let raw=[];try{raw=JSON.parse(localStorage.getItem(SRC)||"[]")}catch(_){}
+ if(!raw.length){toast("Não encontrei dados do Painel de Estoque neste navegador. Exporte o histórico dele em CSV e use Importar CSV.");return}
+ const ks=mkeys(12),tw=m=>(m.t==="S"?m.q>0:m.q<0)?1:0;let add=0,upd=0;
+ raw.forEach(r=>{const mv=(r.mov||[]).map(x=>({...x})).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:tw(a)-tw(b));let b=0;mv.forEach(x=>{b=r3(b+(x.t==="S"?-x.q:x.q));x.bal=b});
+  const m={};ks.forEach(k=>{let s=0,c=0,e=0;mv.forEach(x=>{if(x.d<=k+"-99")s=x.bal;if(x.t==="S"&&x.d.slice(0,7)===k)c=r3(c+x.q);if(x.t==="E"&&x.d.slice(0,7)===k)e=r3(e+x.q)});m[k]={s,c,e}});
+  const ex=items.find(i=>i.code.toLowerCase()===String(r.code||"").toLowerCase()),rec={code:r.code||"",name:r.name||"(sem nome)",cat:r.cat||"Sem categoria",unit:r.unit||"un",cost:Number(r.cost)||0};
+  if(ex){Object.assign(ex,rec);Object.assign(ex.m,m);upd++}else{items.push({id:newId(),...rec,m});add++}});
+ toast(`${add} itens adicionados e ${upd} atualizados a partir do Painel de Estoque.`);save()}
+function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split(/\r?\n/)[0]||"",sep=(f.match(/;/g)||[]).length>=(f.match(/,/g)||[]).length?";":",",rows=[];let row=[],cur="",q=false;
+ for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}else if(c==='"')q=true;else if(c===sep){row.push(cur);cur=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(cur);cur="";if(row.some(x=>x.trim()!==""))rows.push(row);row=[]}else cur+=c}
+ row.push(cur);if(row.some(x=>x.trim()!==""))rows.push(row);return rows}
+const nh=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+const num=s=>{s=String(s==null?"":s).trim().replace(/[R$\s]/g,"");if(!s)return NaN;if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");return Number(s)};
+const AL={code:["codigo","cod","sku"],name:["item","nome","produto"],cat:["categoria","grupo"],unit:["unidade","un"],cost:["custo_unitario","custo","preco"],m:["mes","periodo"],s:["saldo_fim_mes","saldo_final","saldo"],c:["consumo_mes","consumo","saidas"],e:["entrada_mes","entradas","entrada","compras"]};
+$("#fCsv").addEventListener("change",e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const r=new FileReader();r.onerror=()=>toast("Não foi possível abrir o arquivo.");
+ r.onload=()=>{try{const rows=parseCSV(String(r.result)),h=rows[0].map(nh),c={};for(const k in AL){const x=h.findIndex(v=>AL[k].includes(v));if(x>=0)c[k]=x}
+  if(c.code==null||c.m==null||(c.s==null&&c.c==null&&c.e==null))throw new Error("O CSV precisa das colunas codigo, mes e saldo_fim_mes, consumo_mes e/ou entrada_mes.");
+  let add=0,cells=0;const by={};rows.slice(1).forEach(x=>{const code=(x[c.code]||"").trim(),mm=String(x[c.m]||"").trim().match(/^(\d{4})-(\d{1,2})/)||String(x[c.m]||"").trim().match(/^(\d{1,2})\/(\d{4})$/);if(!code||!mm)return;
+   const k=mm[0].includes("/")?mm[2]+"-"+pad(+mm[1]):mm[1]+"-"+pad(+mm[2]);let it=by[code.toLowerCase()];
+   if(!it){it=by[code.toLowerCase()]=items.find(i=>i.code.toLowerCase()===code.toLowerCase());if(!it){it={id:newId(),code,name:"",cat:"Sem categoria",unit:"un",cost:0,m:{}};items.push(it);add++}}
+   if(c.name!=null&&(x[c.name]||"").trim())it.name=x[c.name].trim();if(c.cat!=null&&(x[c.cat]||"").trim())it.cat=x[c.cat].trim();if(c.unit!=null&&(x[c.unit]||"").trim())it.unit=x[c.unit].trim();
+   if(c.cost!=null&&!isNaN(num(x[c.cost])))it.cost=num(x[c.cost]);const o=it.m[k]||(it.m[k]={s:0,c:0,e:0}),s=c.s!=null?num(x[c.s]):NaN,q=c.c!=null?num(x[c.c]):NaN,en=c.e!=null?num(x[c.e]):NaN;
+   if(!isNaN(s)&&s>=0){o.s=r3(s);cells++}if(!isNaN(q)&&q>=0){o.c=r3(q);cells++}if(!isNaN(en)&&en>=0){o.e=r3(en);cells++}});
+  items.forEach(i=>{if(!i.name)i.name=i.code});if(!cells)throw new Error("Nenhum dado válido encontrado.");toast(`${cells} valores importados (${add} itens novos). Itens novos sem custo ficam fora dos totais em R$: edite-os para informar o custo.`);save()}catch(er){toast(er.message)}};
+ r.readAsText(f,"utf-8")});
+$("#bExp").addEventListener("click",()=>{const q=v=>'"'+String(v).replace(/"/g,'""')+'"',d=v=>String(v).replace(".",",");
+ const L=["codigo;item;categoria;unidade;custo_unitario;mes;saldo_fim_mes;consumo_mes;entrada_mes"];
+ [...items].sort((a,b)=>a.code.localeCompare(b.code)).forEach(i=>Object.keys(i.m).sort().forEach(k=>L.push([q(i.code),q(i.name),q(i.cat),q(i.unit),d(i.cost),k,d(i.m[k].s),d(i.m[k].c),d(i.m[k].e||0)].join(";"))));
+ const a=document.createElement("a"),u=URL.createObjectURL(new Blob(["\uFEFF"+L.join("\r\n")],{type:"text/csv;charset=utf-8"}));a.href=u;a.download="giro-estoque.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Arquivo salvo.")});
+
+/* ---- eventos ---- */
+$("#bNew").onclick=()=>openForm();$("#bSrc").onclick=fromPainel;$("#pCancel").onclick=closeForm;
+$("#catSel").onchange=e=>{S.cat=e.target.value;render()};$("#q").oninput=e=>{S.q=e.target.value;render()};
+$("#tHi").onchange=e=>{const v=Number(e.target.value);if(v>=0){cfg.hi=v;if(cfg.lo>v)cfg.lo=v;save()}};$("#tLo").onchange=e=>{const v=Number(e.target.value);if(v>=0){cfg.lo=v;if(cfg.hi<v)cfg.hi=v;save()}};
+document.addEventListener("click",e=>{
+ const p=e.target.closest("#per button");if(p){S.n=+p.dataset.n;render();return}
+ const g=e.target.closest("[data-cat]");if(g){S.cat=S.cat===g.dataset.cat?"all":g.dataset.cat;render();return}
+ const ed=e.target.closest("[data-edit]");if(ed){openForm(ed.dataset.edit);return}
+ const th=e.target.closest("th[data-sort]");if(th){const k=th.dataset.sort;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:1};render();return}
+ const a=e.target.closest("[data-act]");if(!a)return;const id=a.dataset.id;
+ if(a.dataset.act==="new")openForm();else if(a.dataset.act==="src")fromPainel();else if(a.dataset.act==="edit")openForm(id);else if(a.dataset.act==="lan")openL(id);
+ else if(a.dataset.act==="del")twoStep(a,"Confirmar exclusão",()=>{items=items.filter(i=>i.id!==id);toast("Item excluído.");save()})});
+let raf=0;const rd=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{if(items.length)render()})};
+if(window.ResizeObserver)new ResizeObserver(rd).observe(document.querySelector(".wrap"));else addEventListener("resize",rd);
+render();
+})();
+</script></body></html>
